@@ -8,8 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from aes_protocol import aes_decrypt, aes_encrypt, random_iv_hex
-from conditional_entropy import compute_conditional_entropies
+# Относительные импорты (файлы aes_protocol.py и conditional_entropy.py лежат рядом)
+from .aes_protocol import aes_decrypt, aes_encrypt, random_iv_hex
+from .conditional_entropy import compute_conditional_entropies
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR_CANDIDATES = [
@@ -29,27 +30,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class AesEncryptRequest(BaseModel):
     plaintext: str = ""
     passphrase: str
     key_bits: int = Field(default=256, ge=128, le=256)
     iv_hex: str = ""
 
+
 class AesDecryptRequest(BaseModel):
     ciphertext: str = ""
     passphrase: str
     key_bits: int = Field(default=256, ge=128, le=256)
+
 
 class EntropyRequest(BaseModel):
     matrix: list[list[float]] | str = ""
     labels_x: list[str] = Field(default_factory=list)
     labels_y: list[str] = Field(default_factory=list)
 
+
 @app.get("/api/health")
 def health():
     return {"status": "ok", "backend": "python"}
 
-"/api/entropy/compute"
+
+@app.post("/api/entropy/compute")
 def api_entropy_compute(body: EntropyRequest):
     try:
         lx = body.labels_x if body.labels_x else None
@@ -58,11 +64,13 @@ def api_entropy_compute(body: EntropyRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+
 @app.get("/api/aes/random-iv")
 def api_random_iv():
     return {"ivHex": random_iv_hex()}
 
-"/api/aes/encrypt"
+
+@app.post("/api/aes/encrypt")
 def api_aes_encrypt(body: AesEncryptRequest):
     try:
         if body.key_bits not in (128, 192, 256):
@@ -71,7 +79,8 @@ def api_aes_encrypt(body: AesEncryptRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-"/api/aes/decrypt"
+
+@app.post("/api/aes/decrypt")
 def api_aes_decrypt(body: AesDecryptRequest):
     try:
         if body.key_bits not in (128, 192, 256):
@@ -85,6 +94,7 @@ def api_aes_decrypt(body: AesDecryptRequest):
             detail="Ошибка расшифровки (неверный ключ или данные)",
         ) from exc
 
+
 @app.get("/")
 def root():
     return {
@@ -93,6 +103,7 @@ def root():
         "docs": "/docs",
         "health": "/api/health",
     }
+
 
 if static_dir is not None:
     app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
