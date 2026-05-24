@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Презентация — Задание 3 AES</title>
+  <link rel="stylesheet" href="../shared/style.css" />
+  <link rel="stylesheet" href="slides.css" />
+</head>
+<body class="presenter-page">
+  <header class="presenter-chrome no-print">
+    <div class="toolbar-row">
+      <div>
+        <p class="eyebrow">Задание 3</p>
+        <h1 class="h1" style="margin:0">Презентация AES</h1>
+      </div>
+      <div class="btn-row" style="margin:0">
+        <a href="../zadanie3-aes/index.html" class="btn">Демо</a>
+        <button type="button" id="btnFullscreen" class="btn">На весь экран</button>
+        <button type="button" id="btnPdf" class="primary">Скачать PDF</button>
+      </div>
+    </div>
+    <p class="pdf-hint" style="margin:0.5rem 0 0;font-size:0.8rem;color:var(--muted)">
+      PDF сохранит тёмный стиль слайдов 16:9. В диалоге печати: «Сохранить как PDF», включите фоновую графику.
+    </p>
+  </header>
+
+  <div class="presenter-stage-wrap">
+    <div class="slide-viewport" id="viewport">
+      <!-- Слайд 1: титул -->
+      <section class="pres-slide pres-slide--title is-active" data-index="0">
+        <span class="pres-slide-num">01 / 08</span>
+        <span class="pres-slide-tag">Теория информации</span>
+        <h2>Протокол шифрования AES</h2>
+        <p class="subtitle">Веб-реализация AES-CBC с PKCS#7 · FIPS-197 · FastAPI + cryptography</p>
+        <p class="meta-line">Задание 3 · демонстрация и отчёт</p>
+      </section>
+
+      <!-- Слайд 2: задача -->
+      <section class="pres-slide pres-slide--split" data-index="1">
+        <span class="pres-slide-num">02 / 08</span>
+        <div class="col">
+          <span class="pres-slide-tag">Цель</span>
+          <h2>Постановка задачи</h2>
+          <ul>
+            <li>Средство шифрования и дешифрования текста.</li>
+            <li>Ключи 128, 192, 256 бит.</li>
+            <li>Работа в браузере без установки ПО.</li>
+          </ul>
+        </div>
+        <div class="col col-accent">
+          <span class="pres-slide-tag">Результат</span>
+          <h2>Ожидаемый итог</h2>
+          <ul>
+            <li>Рабочий протокол с упаковкой IV.</li>
+            <li>Демо с разными входами.</li>
+            <li>Краткая презентация и тесты.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Слайд 3: архитектура -->
+      <section class="pres-slide pres-slide--diagram" data-index="2">
+        <span class="pres-slide-num">03 / 08</span>
+        <span class="pres-slide-tag">Архитектура</span>
+        <h2>Клиент — сервер</h2>
+        <pre class="diagram-block">  [ Браузер: конвейер шифрования ]
+              │
+              │  REST (JSON)
+              ▼
+  ┌─────────────────────────────┐
+  │  FastAPI · main.py          │
+  │    ├─ aes_protocol.py       │
+  │    └─ conditional_entropy   │
+  └─────────────────────────────┘
+              │
+              ▼
+     cryptography (AES-CBC)</pre>
+        <p class="caption">Статика и API в одном процессе uvicorn.</p>
+      </section>
+
+      <!-- Слайд 4: теория -->
+      <section class="pres-slide pres-slide--split" data-index="3">
+        <span class="pres-slide-num">04 / 08</span>
+        <div class="col">
+          <span class="pres-slide-tag">Стандарт</span>
+          <h2>AES (FIPS-197)</h2>
+          <ul>
+            <li>Симметричный блочный шифр.</li>
+            <li>Размер блока: 128 бит.</li>
+            <li>Длина ключа: 128 / 192 / 256.</li>
+          </ul>
+        </div>
+        <div class="col col-accent">
+          <span class="pres-slide-tag">Режим</span>
+          <h2>CBC + PKCS#7</h2>
+          <ul>
+            <li>CBC связывает блоки шифротекста.</li>
+            <li>PKCS#7 — выравнивание длины.</li>
+            <li>Ключ: SHA-256(фраза), усечение.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Слайд 5: IV -->
+      <section class="pres-slide pres-slide--diagram" data-index="4">
+        <span class="pres-slide-num">05 / 08</span>
+        <span class="pres-slide-tag">Протокол</span>
+        <h2>Вектор инициализации (IV)</h2>
+        <pre class="diagram-block">  Пакет = Base64( IV ‖ Ciphertext )
+           └─ 16 B ─┘   └─ перем. ─┘
+
+  • IV случайный (os.urandom) или задан вручную
+  • Тот же открытый текст + другой IV → другой пакет
+  • IV не секрет — передаётся с шифротекстом
+  • При decrypt IV читается из первых 16 байт</pre>
+      </section>
+
+      <!-- Слайд 6: функции -->
+      <section class="pres-slide pres-slide--split" data-index="5">
+        <span class="pres-slide-num">06 / 08</span>
+        <div class="col">
+          <span class="pres-slide-tag">Модуль</span>
+          <h2>aes_protocol.py</h2>
+          <ul>
+            <li><code>derive_aes_key</code></li>
+            <li><code>aes_encrypt</code></li>
+            <li><code>aes_decrypt</code></li>
+          </ul>
+        </div>
+        <div class="col col-accent">
+          <span class="pres-slide-tag">API</span>
+          <h2>Эндпоинты</h2>
+          <ul>
+            <li><code>POST /api/aes/encrypt</code></li>
+            <li><code>POST /api/aes/decrypt</code></li>
+            <li><code>GET /api/aes/random-iv</code></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Слайд 7: демо -->
+      <section class="pres-slide pres-slide--steps" data-index="6">
+        <span class="pres-slide-num">07 / 08</span>
+        <span class="pres-slide-tag">Демонстрация</span>
+        <h2>Сценарий показа</h2>
+        <ol>
+          <li>Вкладка «Шифрование»: фраза, ключ 256, запуск конвейера → пакет Base64.</li>
+          <li>Инспектор: режим, IV, размер пакета.</li>
+          <li>«Расшифровка»: тот же ключ → восстановление текста.</li>
+          <li>Тест неверного ключа — ожидаемая ошибка.</li>
+        </ol>
+      </section>
+
+      <!-- Слайд 8: итог -->
+      <section class="pres-slide pres-slide--title" data-index="7">
+        <span class="pres-slide-num">08 / 08</span>
+        <span class="pres-slide-tag">Итог</span>
+        <h2>Результаты</h2>
+        <p class="subtitle">
+          Реализован протокол AES-CBC, веб-конвейер шифрования, автотесты round-trip.
+          Стек: HTML, CSS, JavaScript, Python, FastAPI, cryptography.
+        </p>
+        <p class="meta-line">Спасибо за внимание</p>
+      </section>
+    </div>
+  </div>
+
+  <footer class="presenter-footer no-print">
+    <div class="progress-track" aria-hidden="true">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="presenter-controls">
+      <button type="button" id="btnPrev">←</button>
+      <div class="thumb-strip" id="thumbStrip" aria-label="Слайды"></div>
+      <span class="slide-counter" id="slideCounter">1 / 8</span>
+      <button type="button" id="btnNext">→</button>
+    </div>
+  </footer>
+
+  <script type="module" src="deck.js"></script>
+</body>
+</html>

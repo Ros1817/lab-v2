@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Задание 3 — AES</title>
+  <link rel="stylesheet" href="../shared/style.css" />
+  <link rel="stylesheet" href="aes.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside id="app-sidebar" class="sidebar"></aside>
+    <div class="content">
+      <header class="topbar">
+        <p class="eyebrow">Задание 3 · Конвейер</p>
+        <h1 class="h1">Протокол AES</h1>
+        <p class="lead">Пошаговая обработка: ключ → преобразование → инспектор пакета Base64(IV‖CT).</p>
+      </header>
+
+      <main class="page-main aes-workspace">
+        <nav class="aes-tabs" role="tablist" aria-label="Режим работы">
+          <button type="button" class="is-active" data-tab="encrypt" role="tab" aria-selected="true">Шифрование</button>
+          <button type="button" data-tab="decrypt" role="tab">Расшифровка</button>
+          <button type="button" data-tab="help" role="tab">Справка</button>
+        </nav>
+
+        <div class="aes-pane is-active" id="pane-encrypt" role="tabpanel">
+          <div class="aes-layout">
+            <aside class="aes-config">
+              <h3>Ключ и IV</h3>
+              <p class="hint warn" style="list-style:none;padding:0;margin:0 0 0.75rem;font-size:0.8rem">Длина ключа</p>
+              <div class="key-pills" id="keyPillsEnc" role="group" aria-label="Длина ключа">
+                <button type="button" data-bits="128">128</button>
+                <button type="button" data-bits="192">192</button>
+                <button type="button" data-bits="256" class="is-active">256</button>
+              </div>
+              <div class="pass-row">
+                <input id="passphraseEnc" type="password" value="theor-info-2026" placeholder="Парольная фраза" autocomplete="off" aria-label="Парольная фраза" />
+                <button type="button" id="btnTogglePass" title="Показать пароль">◎</button>
+              </div>
+              <div class="iv-field">
+                <label style="margin:0 0 0.35rem">IV (hex)</label>
+                <input id="ivHexEnc" type="text" placeholder="автогенерация" spellcheck="false" />
+              </div>
+              <div class="btn-row" style="margin-top:0.5rem">
+                <button type="button" id="btnRandomIv">IV ↻</button>
+                <button type="button" id="btnSample">Пример</button>
+              </div>
+            </aside>
+
+            <section class="aes-stage">
+              <div class="pipeline" id="pipelineEnc" aria-hidden="true">
+                <span class="pipeline-node" data-step="plain">Открытый текст</span>
+                <span class="pipeline-arrow">→</span>
+                <span class="pipeline-node" data-step="pad">PKCS#7</span>
+                <span class="pipeline-arrow">→</span>
+                <span class="pipeline-node" data-step="aes">AES-CBC</span>
+                <span class="pipeline-arrow">→</span>
+                <span class="pipeline-node" data-step="pack">Base64</span>
+              </div>
+              <div class="io-split">
+                <div class="io-pane">
+                  <label for="plaintext">Вход</label>
+                  <textarea id="plaintext" rows="8">Лабораторная работа: симметричное шифрование AES-CBC для передачи конфиденциальных данных по открытому каналу.</textarea>
+                </div>
+                <div class="io-mid">
+                  <button type="button" class="btn-round primary" id="btnEncrypt" title="Запустить шифрование">▶</button>
+                </div>
+                <div class="io-pane">
+                  <label for="ciphertextEnc">Пакет (Base64)</label>
+                  <textarea id="ciphertextEnc" rows="8" readonly spellcheck="false" placeholder="Результат появится здесь"></textarea>
+                </div>
+              </div>
+              <div class="aes-actions">
+                <button type="button" id="btnCopyCt" class="primary">Копировать пакет</button>
+                <button type="button" id="btnToDecrypt">Перейти к расшифровке →</button>
+              </div>
+              <div class="log-strip" id="logEnc" role="status"></div>
+            </section>
+
+            <aside class="aes-packet">
+              <h3>Инспектор</h3>
+              <ul class="packet-list" id="packetEnc">
+                <li><span>Режим</span><span>—</span></li>
+                <li><span>Ключ</span><span>—</span></li>
+                <li><span>IV (hex)</span><span>—</span></li>
+                <li><span>Размер пакета</span><span>—</span></li>
+              </ul>
+              <div class="packet-iv" id="packetIvEnc">Ожидание операции…</div>
+            </aside>
+          </div>
+        </div>
+
+        <div class="aes-pane" id="pane-decrypt" role="tabpanel" hidden>
+          <div class="aes-layout">
+            <aside class="aes-config">
+              <h3>Ключ</h3>
+              <div class="key-pills" id="keyPillsDec" role="group">
+                <button type="button" data-bits="128">128</button>
+                <button type="button" data-bits="192">192</button>
+                <button type="button" data-bits="256" class="is-active">256</button>
+              </div>
+              <input id="passphraseDec" type="password" value="theor-info-2026" placeholder="Та же фраза, что при шифровании" autocomplete="off" aria-label="Парольная фраза" />
+              <p class="hint warn" style="list-style:none;padding:0;margin-top:0.75rem;font-size:0.8rem">IV извлекается из начала Base64-пакета автоматически.</p>
+            </aside>
+
+            <section class="aes-stage">
+              <div class="pipeline" id="pipelineDec" aria-hidden="true">
+                <span class="pipeline-node" data-step="pack">Base64</span>
+                <span class="pipeline-arrow">→</span>
+                <span class="pipeline-node" data-step="aes">AES-CBC</span>
+                <span class="pipeline-arrow">→</span>
+                <span class="pipeline-node" data-step="pad">Unpad</span>
+                <span class="pipeline-arrow">→</span>
+                <span class="pipeline-node" data-step="plain">Текст</span>
+              </div>
+              <div class="io-split">
+                <div class="io-pane">
+                  <label for="ciphertextDec">Пакет (Base64)</label>
+                  <textarea id="ciphertextDec" rows="8" spellcheck="false" placeholder="Вставьте шифротекст"></textarea>
+                </div>
+                <div class="io-mid">
+                  <button type="button" class="btn-round primary" id="btnDecrypt" title="Расшифровать">◀</button>
+                </div>
+                <div class="io-pane">
+                  <label for="decryptOut">Результат</label>
+                  <textarea id="decryptOut" rows="8" readonly placeholder="Открытый текст"></textarea>
+                </div>
+              </div>
+              <div class="aes-actions">
+                <button type="button" id="btnDecryptPrimary" class="primary">Расшифровать</button>
+                <button type="button" id="btnWrongKey" class="danger">Тест: неверный ключ</button>
+              </div>
+              <div class="log-strip" id="logDec" role="status"></div>
+            </section>
+
+            <aside class="aes-packet">
+              <h3>Инспектор</h3>
+              <ul class="packet-list" id="packetDec">
+                <li><span>Режим</span><span>—</span></li>
+                <li><span>IV из пакета</span><span>—</span></li>
+                <li><span>Статус</span><span>—</span></li>
+              </ul>
+            </aside>
+          </div>
+        </div>
+
+        <div class="aes-pane" id="pane-help" role="tabpanel" hidden>
+          <div class="aes-help">
+            <h3>О протоколе</h3>
+            <dl>
+              <dt>Формат пакета</dt>
+              <dd>Base64( IV<sub>16 байт</sub> ‖ ciphertext ). IV не нужно вводить при расшифровке.</dd>
+              <dt>Ключ</dt>
+              <dd>SHA-256(парольная фраза), усечение до 16 / 24 / 32 байт.</dd>
+              <dt>Режим</dt>
+              <dd>AES-CBC, дополнение PKCS#7. Реализация: <code>aes_protocol.py</code>, библиотека cryptography.</dd>
+              <dt>API</dt>
+              <dd><code>POST /api/aes/encrypt</code>, <code>POST /api/aes/decrypt</code>, <code>GET /api/aes/random-iv</code></dd>
+            </dl>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <button type="button" class="sidebar-toggle no-print" id="sidebar-toggle" aria-label="Меню">≡</button>
+
+  <script type="module">
+    import { initShell } from "../shared/shell.js";
+    initShell({ active: "aes", base: "../" });
+  </script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
