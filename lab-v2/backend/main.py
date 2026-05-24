@@ -1,25 +1,16 @@
-"""FastAPI: условные энтропии + AES + статика (если есть)."""
+"""FastAPI: условные энтропии + AES + статика."""
 
 from pathlib import Path
-from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-# Относительные импорты (файлы aes_protocol.py и conditional_entropy.py лежат рядом)
-from .aes_protocol import aes_decrypt, aes_encrypt, random_iv_hex
-from .conditional_entropy import compute_conditional_entropies
+from aes_protocol import aes_decrypt, aes_encrypt, random_iv_hex
+from conditional_entropy import compute_conditional_entropies
 
-BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR_CANDIDATES = [
-    BASE_DIR / "static",
-    BASE_DIR / "frontend" / "dist",
-    BASE_DIR / "dist",
-]
-
-static_dir = next((p for p in STATIC_DIR_CANDIDATES if p.exists() and p.is_dir()), None)
+ROOT = Path(__file__).resolve().parent.parent
 
 app = FastAPI(title="Theor Info", version="1.0.0")
 
@@ -34,18 +25,18 @@ app.add_middleware(
 class AesEncryptRequest(BaseModel):
     plaintext: str = ""
     passphrase: str
-    key_bits: int = Field(default=256, ge=128, le=256)
+    key_bits: int = Field(256, ge=128, le=256)
     iv_hex: str = ""
 
 
 class AesDecryptRequest(BaseModel):
     ciphertext: str = ""
     passphrase: str
-    key_bits: int = Field(default=256, ge=128, le=256)
+    key_bits: int = Field(256, ge=128, le=256)
 
 
 class EntropyRequest(BaseModel):
-    matrix: list[list[float]] | str = ""
+    matrix: str | list[list[float]] = ""
     labels_x: list[str] = Field(default_factory=list)
     labels_y: list[str] = Field(default_factory=list)
 
@@ -95,15 +86,4 @@ def api_aes_decrypt(body: AesDecryptRequest):
         ) from exc
 
 
-@app.get("/")
-def root():
-    return {
-        "status": "ok",
-        "message": "Backend is running",
-        "docs": "/docs",
-        "health": "/api/health",
-    }
-
-
-if static_dir is not None:
-    app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+app.mount("/", StaticFiles(directory=str(ROOT), html=True), name="static")
