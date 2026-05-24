@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Теория информации — главная</title>
+  <link rel="stylesheet" href="shared/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside id="app-sidebar" class="sidebar"></aside>
+    <div class="content">
+      <header class="topbar">
+        <p class="eyebrow">Курс · лабораторные работы</p>
+        <h1 class="h1">Теория информации</h1>
+        <p class="lead">Условные энтропии зависимых систем и протокол шифрования AES в браузере.</p>
+        <p class="status-pill" id="healthLine">Подключение к серверу…</p>
+      </header>
+      <main class="page-main">
+        <div class="bento">
+          <a href="zadanie2-entropy/index.html" class="bento-item span-8">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+            </svg>
+            <strong>Задание 2 — Условные энтропии</strong>
+            <span>Матрица совместных вероятностей P(X,Y). Полные H(X|Y), H(Y|X) и частные энтропии по каждому состоянию.</span>
+            <span class="chip">информация · Python</span>
+          </a>
+          <a href="zadanie3-aes/index.html" class="bento-item span-4">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 118 0v3"/>
+            </svg>
+            <strong>Задание 3 — AES</strong>
+            <span>AES-128/192/256, CBC, PKCS#7.</span>
+            <span class="chip">криптография</span>
+          </a>
+          <a href="prezentaciya-aes/index.html" class="bento-item span-6">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+            </svg>
+            <strong>Презентация — Задание 3</strong>
+            <span>Задача, архитектура, IV, демо-сценарии. Экспорт в PDF из браузера.</span>
+            <span class="chip">отчёт</span>
+          </a>
+          <div class="bento-item span-6" style="cursor:default;pointer-events:none">
+            <strong style="font-family:var(--font-mono);font-size:0.85rem;color:var(--muted)">Запуск сервера</strong>
+            <span class="mono" style="margin-top:0.5rem;display:block;font-size:0.72rem;line-height:1.7">
+              cd backend<br>
+              source .venv/bin/activate<br>
+              python -m uvicorn main:app --reload --port 8000
+            </span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <button type="button" class="sidebar-toggle no-print" id="sidebar-toggle" aria-label="Меню">≡</button>
+
+  <script type="module">
+    import { initShell } from "./shared/shell.js";
+    import { apiGet } from "./shared/api.js";
+
+    initShell({ active: "home" });
+
+    const el = document.getElementById("healthLine");
+    try {
+      const h = await apiGet("/api/health");
+      el.textContent = `Сервер: ${h.status} · ${h.backend}`;
+    } catch {
+      el.textContent = "Сервер не запущен — см. блок «Запуск»";
+      el.classList.add("error");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Задание 2 — Условные энтропии</title>
+  <link rel="stylesheet" href="../shared/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside id="app-sidebar" class="sidebar"></aside>
+    <div class="content">
+      <header class="topbar">
+        <p class="eyebrow">Задание 2</p>
+        <h1 class="h1">Условные энтропии</h1>
+        <p class="lead">Две зависимые системы: матрица P(X,Y) → полные и частные энтропии (бит).</p>
+      </header>
+      <main class="page-main grid two-col">
+        <section class="panel">
+          <div class="panel-head"><h2 class="h2">Входные данные</h2></div>
+          <p class="hint warn">
+            Строки — X, столбцы — Y. Сумма ячеек = 1 (иначе нормализация).
+          </p>
+          <div class="row-2">
+            <label>
+              Подписи X
+              <input id="labelsX" type="text" placeholder="x1, x2, x3" />
+            </label>
+            <label>
+              Подписи Y
+              <input id="labelsY" type="text" placeholder="y1, y2" />
+            </label>
+          </div>
+          <div id="matrixWrap"></div>
+          <label>
+            Матрица текстом
+            <textarea id="matrixText" rows="4" placeholder="0.2 0.1&#10;0.15 0.05"></textarea>
+          </label>
+          <div class="btn-row">
+            <button id="btnCompute" type="button" class="primary">Рассчитать</button>
+            <button id="btnSyncTable" type="button">Таблица → текст</button>
+            <button id="btnSyncText" type="button">Текст → таблица</button>
+            <button id="btnSampleIndep" type="button">Независимые</button>
+            <button id="btnSampleDep" type="button">Зависимые</button>
+            <button id="btnSampleDiag" type="button">Диагональ</button>
+          </div>
+          <p id="status" class="status"></p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h2 class="h2">Полные энтропии</h2></div>
+          <div class="kpi-grid" id="kpiFull">
+            <div class="kpi"><div class="kpi-label">H(X)</div><div class="kpi-value">—</div></div>
+            <div class="kpi"><div class="kpi-label">H(Y)</div><div class="kpi-value">—</div></div>
+            <div class="kpi"><div class="kpi-label">H(X,Y)</div><div class="kpi-value">—</div></div>
+            <div class="kpi"><div class="kpi-label">H(X|Y)</div><div class="kpi-value">—</div></div>
+            <div class="kpi"><div class="kpi-label">H(Y|X)</div><div class="kpi-value">—</div></div>
+            <div class="kpi"><div class="kpi-label">I(X;Y)</div><div class="kpi-value">—</div></div>
+          </div>
+          <pre id="marginalsOut" class="mono box"></pre>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h2 class="h2">Частные H(X | Y)</h2></div>
+          <ul id="partialX" class="partial-list"><li>Нажмите «Рассчитать»</li></ul>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h2 class="h2">Частные H(Y | X)</h2></div>
+          <ul id="partialY" class="partial-list"><li>Нажмите «Рассчитать»</li></ul>
+        </section>
+
+        <section class="panel full">
+          <div class="panel-head"><h2 class="h2">Матрица и формулы</h2></div>
+          <pre id="jointOut" class="mono box scroll"></pre>
+          <ul class="hint">
+            <li>H(X|Y) = H(X,Y) − H(Y); H(Y|X) = H(X,Y) − H(X)</li>
+            <li>H(X|Y=y<sub>j</sub>) = −Σ p(x<sub>i</sub>|y<sub>j</sub>) log₂ p(x<sub>i</sub>|y<sub>j</sub>)</li>
+            <li><code>conditional_entropy.py</code></li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+  <button type="button" class="sidebar-toggle no-print" id="sidebar-toggle" aria-label="Меню">≡</button>
+
+  <script type="module">
+    import { initShell } from "../shared/shell.js";
+    initShell({ active: "entropy", base: "../" });
+  </script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
